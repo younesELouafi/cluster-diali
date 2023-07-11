@@ -98,9 +98,6 @@ spec:
       matchLabels:
         owner: younesELouafi
         repo: nemo-technology-repo
-  providerConfigRef:
-    name: config-github
-
 ---
 apiVersion: cluster.diali/v1alpha1
 kind: GitOps
