@@ -103,7 +103,7 @@ spec:
 
 ---
 apiVersion: cluster.diali/v1alpha1
-kind: GitOpsClaim
+kind: GitOps
 metadata:
   name: nemo-technology-gitops
   labels:
