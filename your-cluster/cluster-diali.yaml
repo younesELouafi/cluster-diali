@@ -1,0 +1,120 @@
+apiVersion: cluster.diali/v1alpha1
+kind: ClusterClaim
+metadata:
+  name: nemo-technology-eks
+  labels:
+    cluster-owner: younes
+spec:
+  id: nemo-technology-eks
+  compositionSelector:
+    matchLabels:
+      provider: aws
+      cluster: eks
+  parameters:
+    nodeSize: small
+    minNodeCount: 3
+  providerConfigRef:
+    name: config-aws
+
+---
+apiVersion: repo.github.upbound.io/v1alpha1
+kind: Repository
+metadata:
+  name: nemo-technology-repo
+  labels:
+    owner: younesELouafi
+    repo: nemo-technology-repo
+spec:
+  forProvider:
+    autoInit: true
+    visibility: public
+  providerConfigRef:
+    name: config-github
+---
+apiVersion: repo.github.upbound.io/v1alpha1
+kind: RepositoryFile
+metadata:
+  name: deployment
+spec:
+  forProvider:
+    content: |
+      apiVersion: apps/v1
+      kind: Deployment
+      metadata:
+        name: nginx-deployment
+      spec:
+        selector:
+          matchLabels:
+            app: nginx
+        replicas: 2
+        template:
+          metadata:
+            labels:
+              app: nginx
+          spec:
+            containers:
+            - name: nginx
+              image: nginx
+              ports:
+              - containerPort: 80
+              resources:
+                limits:
+                  cpu: "0.5"
+                  memory: "512Mi"
+                requests:
+                  cpu: "0.1"
+                  memory: "128Mi"
+    file: apps-dev/deployment.yaml
+    repositorySelector:
+      matchLabels:
+        owner: younesELouafi
+        repo: nemo-technology-repo
+  providerConfigRef:
+    name: config-github
+
+---
+apiVersion: repo.github.upbound.io/v1alpha1
+kind: RepositoryFile
+metadata:
+  name: service
+spec:
+  forProvider:
+    content: |
+      apiVersion: v1
+      kind: Service
+      metadata:
+        name: nginx-service
+      spec:
+        selector:
+          app: nginx
+        ports:
+        - name: http
+          port: 80
+          protocol: TCP
+          targetPort: 80
+        type: LoadBalancer
+    file: apps-dev/service.yaml
+    repositorySelector:
+      matchLabels:
+        owner: younesELouafi
+        repo: nemo-technology-repo
+  providerConfigRef:
+    name: config-github
+
+---
+apiVersion: cluster.diali/v1alpha1
+kind: GitOpsClaim
+metadata:
+  name: nemo-technology-gitops
+  labels:
+    cluster-owner: younes
+spec:
+  id: nemo-technology-gitops
+  compositionSelector:
+    matchLabels:
+      provider: argo
+  parameters:
+    kubeConfig:
+      secretName: nemo-technology-eks-cluster
+      secretNamespace: crossplane-system
+    gitOpsRepo: https://github.com/younesELouafi/nemo-technology-repo.git
