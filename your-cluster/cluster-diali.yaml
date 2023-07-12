@@ -24,7 +24,7 @@ metadata:
 spec:
   forProvider:
     autoInit: true
-    visibility: public
+    visibility: private
   providerConfigRef:
     name: config-github
 ---
